@@ -11,12 +11,16 @@ import {
   ChevronRight,
   Package,
   BookOpen,
+  UserCog,
 } from 'lucide-react'
 
 const crmNavigation = [
   { name: 'Dashboard', href: '/crm/dashboard', icon: BarChart2 },
   { name: 'All Leads', href: '/crm', icon: Users },
   { name: 'Bookings', href: '/bookings', icon: Package },
+
+  // CHANGE: Added Team navigation for Admin Team Management.
+  { name: 'Team', href: '/team', icon: UserCog },
 ]
 
 export default function Sidebar() {
@@ -62,6 +66,7 @@ export default function Sidebar() {
                   item.href === '/crm'
                     ? pathname === '/crm'
                     : pathname === item.href || pathname.startsWith(item.href + '/')
+
                 return (
                   <Link
                     key={item.name}

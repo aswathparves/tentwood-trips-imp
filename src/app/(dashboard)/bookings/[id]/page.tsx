@@ -329,7 +329,8 @@ export default function BookingDetailPage() {
               </p>
             )}
           </div>
-          <div style={{ textAlign: 'right' }}>
+
+          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
             <select
               value={form.status}
               onChange={(e) => setForm(f => ({ ...f, status: e.target.value }))}
@@ -338,8 +339,23 @@ export default function BookingDetailPage() {
               <option value="confirmed">Confirmed</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            {isAdmin && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm('Delete this booking permanently? This cannot be undone.')) return
+                  const { error } = await supabase.from('bookings').delete().eq('id', id)
+                  if (error) {
+                    setError(error.message)
+                  } else {
+                    router.push('/bookings')
+                  }
+                }}
+                style={{ padding: '6px 14px', backgroundColor: 'transparent', border: '1px solid #fca5a5', borderRadius: '8px', color: '#fca5a5', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}>
+                Delete Booking
+              </button>
+            )}
           </div>
-        </div>
+          </div>
 
         {error && (
           <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px' }}>

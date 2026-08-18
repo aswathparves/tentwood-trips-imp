@@ -194,7 +194,7 @@ export default function CRMPage() {
   // Staff columns
   const staffColumns = ['S.No', 'Date', 'Name', 'Phone', 'DMC', 'Destination', 'Temperature', 'Status']
   // Admin columns
-  const adminColumns = ['Lead Owner', 'Date', 'Name', 'Contact', 'Status']
+  const adminColumns = ['Lead Owner', 'Date', 'Name', 'DMC', 'Status']
 
   return (
     <>
@@ -495,7 +495,7 @@ export default function CRMPage() {
         {/* STAFF VIEW */}
         {!isAdmin && filteredLeads.length > 0 && (
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e7e5e4', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '60px 90px 1.5fr 120px 100px 1fr 100px 100px', gap: '10px', padding: '10px 16px', backgroundColor: '#fafaf9', borderBottom: '1px solid #f5f5f4' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '50px 85px 1.2fr 110px 80px 1.5fr 110px 100px', gap: '10px', padding: '10px 16px', backgroundColor: '#fafaf9', borderBottom: '1px solid #f5f5f4' }}>
               {staffColumns.map(h => (
                 <p key={h} style={{ fontSize: '11px', fontWeight: 600, color: '#a8a29e', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</p>
               ))}
@@ -507,8 +507,8 @@ export default function CRMPage() {
               const isOverdue = lead.follow_up_date && lead.follow_up_date < today && lead.status !== 'booked' && lead.status !== 'lost'
 
               return (
-                <Link key={lead.id} href={`/crm/${lead.id}`}
-                  style={{ display: 'grid', gridTemplateColumns: '60px 90px 1.5fr 120px 100px 1fr 100px 100px', gap: '10px', padding: '12px 16px', borderTop: i === 0 ? 'none' : '1px solid #f5f5f4', textDecoration: 'none', backgroundColor: isOverdue ? '#fffbeb' : '#fff', alignItems: 'center' }}>
+                <Link key={lead.id} href={`/crm/${lead.id}`} //Here we can Change the Space for the staffs All Leads pages (Rows)
+                  style={{ display: 'grid', gridTemplateColumns: '50px 85px 1.2fr 110px 80px 1.5fr 110px 100px', gap: '10px', padding: '12px 16px', borderTop: i === 0 ? 'none' : '1px solid #f5f5f4', textDecoration: 'none', backgroundColor: isOverdue ? '#fffbeb' : '#fff', alignItems: 'center' }}>
 
                   <p style={{ fontSize: '13px', fontWeight: 600, color: '#0D9488' }}>
                     #{lead.serial_number ?? '—'}
@@ -546,7 +546,7 @@ export default function CRMPage() {
         {/* ADMIN VIEW */}
         {isAdmin && filteredLeads.length > 0 && (
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e7e5e4', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 100px 1.5fr 80px 120px', gap: '12px', padding: '10px 20px', backgroundColor: '#fafaf9', borderBottom: '1px solid #f5f5f4' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 1.5fr 100px 100px', gap: '12px', padding: '10px 20px', backgroundColor: '#fafaf9', borderBottom: '1px solid #f5f5f4' }}>
               {adminColumns.map(h => (
                 <p key={h} style={{ fontSize: '11px', fontWeight: 600, color: '#a8a29e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</p>
               ))}
@@ -557,7 +557,7 @@ export default function CRMPage() {
 
               return (
                 <Link key={lead.id} href={`/crm/${lead.id}`}
-                  style={{ display: 'grid', gridTemplateColumns: '1.5fr 100px 1.5fr 80px 120px', gap: '12px', padding: '14px 20px', borderTop: i === 0 ? 'none' : '1px solid #f5f5f4', textDecoration: 'none', backgroundColor: '#fff', alignItems: 'center' }}>
+                  style={{ display: 'grid', gridTemplateColumns: '1fr 90px 1.5fr 100px 100px', gap: '12px', padding: '14px 20px', borderTop: i === 0 ? 'none' : '1px solid #f5f5f4', textDecoration: 'none', backgroundColor: '#fff', alignItems: 'center' }}>
 
                   <div>
                     <p style={{ fontSize: '13px', fontWeight: 600, color: '#1c1917' }}>
@@ -574,9 +574,9 @@ export default function CRMPage() {
                     <p style={{ fontSize: '12px', color: '#78716c' }}>{lead.phone}</p>
                   </div>
 
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#0D9488' }}>
-                    {lead.phone ?? '—'}
-                  </p>
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#44403c' }}>{lead.dmc || '—'}</p>
+                  </div>
 
                   <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '9999px', backgroundColor: statusStyle.bg, color: statusStyle.text, textTransform: 'capitalize', width: 'fit-content' }}>
                     {lead.status.replace('_', ' ')}

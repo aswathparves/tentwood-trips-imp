@@ -77,6 +77,13 @@ export default function LoginPage() {
             </p>
           )}
 
+          <div className="text-right">
+            <a href="/forgot-password" className="text-sm text-stone-600 hover:text-stone-900 hover:underline"
+            >
+            Forgot password?
+            </a>
+          </div>
+
           <button
             onClick={handleLogin}
             disabled={loading}
