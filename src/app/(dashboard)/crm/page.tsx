@@ -40,6 +40,13 @@ const sourceLabels: Record<string, string> = {
   other: '📌 Other',
 }
 
+const DMC_LIST = [
+  'Baligo', 'Travclan', 'Tatabye', 'IDMC', 'ACT',
+  'Travino', 'Great Deal', 'Indo China', 'Tourale',
+  'TBO', 'JE', 'Lotus', 'Alburaq', 'Andaman Experts',
+  'Others',
+]
+
 interface Filters {
   search: string
   status: string
@@ -47,6 +54,7 @@ interface Filters {
   source: string
   budget: string
   staff: string
+  dmc: string
   follow_up_today: boolean
   date_from: string
   date_to: string
@@ -59,6 +67,7 @@ const defaultFilters: Filters = {
   source: '',
   budget: '',
   staff: '',
+  dmc: '',
   follow_up_today: false,
   date_from: '',
   date_to: '',
@@ -70,7 +79,6 @@ export default function CRMPage() {
   const [filteredLeads, setFilteredLeads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [currentUserId, setCurrentUserId] = useState('')
   const [staffList, setStaffList] = useState<any[]>([])
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState<Filters>(defaultFilters)
@@ -85,8 +93,6 @@ export default function CRMPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-
-      setCurrentUserId(user.id)
 
       const { data: prof } = await supabase
         .from('profiles')
@@ -133,7 +139,8 @@ export default function CRMPage() {
       result = result.filter(l =>
         l.client_name?.toLowerCase().includes(s) ||
         l.phone?.includes(s) ||
-        l.destination?.toLowerCase().includes(s)
+        l.destination?.toLowerCase().includes(s) ||
+        l.serial_number?.toString().includes(s)
       )
     }
 
@@ -142,6 +149,7 @@ export default function CRMPage() {
     if (filters.source) result = result.filter(l => l.source === filters.source)
     if (filters.budget) result = result.filter(l => l.budget === filters.budget)
     if (filters.staff) result = result.filter(l => l.assigned_to === filters.staff)
+    if (filters.dmc) result = result.filter(l => l.dmc === filters.dmc)
     if (filters.follow_up_today) result = result.filter(l => l.follow_up_date === today)
     if (filters.date_from) result = result.filter(l => l.created_at.split('T')[0] >= filters.date_from)
     if (filters.date_to) result = result.filter(l => l.created_at.split('T')[0] <= filters.date_to)
@@ -183,11 +191,16 @@ export default function CRMPage() {
     letterSpacing: '0.04em',
   }
 
+  // Staff columns
+  const staffColumns = ['S.No', 'Date', 'Name', 'Phone', 'DMC', 'Destination', 'Temperature', 'Status']
+  // Admin columns
+  const adminColumns = ['Lead Owner', 'Date', 'Name', 'Contact', 'Status']
+
   return (
     <>
-      <TopNav title="CRM" />
+      <TopNav title="All Leads" />
 
-      {/* Sliding filter panel overlay */}
+      {/* Overlay */}
       {filterOpen && (
         <div
           onClick={() => setFilterOpen(false)}
@@ -199,8 +212,8 @@ export default function CRMPage() {
       <div style={{
         position: 'fixed',
         top: 0,
-        right: filterOpen ? 0 : '-380px',
-        width: '380px',
+        right: filterOpen ? 0 : '-400px',
+        width: '400px',
         height: '100vh',
         backgroundColor: '#fff',
         borderLeft: '1px solid #e7e5e4',
@@ -214,7 +227,7 @@ export default function CRMPage() {
           <div>
             <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1c1917' }}>Filters</h2>
             {activeFilterCount > 0 && (
-              <p style={{ fontSize: '12px', color: '#0D9488', marginTop: '2px' }}>{activeFilterCount} active filter{activeFilterCount !== 1 ? 's' : ''}</p>
+              <p style={{ fontSize: '12px', color: '#0D9488', marginTop: '2px' }}>{activeFilterCount} active</p>
             )}
           </div>
           <button onClick={() => setFilterOpen(false)}
@@ -233,7 +246,7 @@ export default function CRMPage() {
               <input style={{ ...inputStyle, paddingLeft: '32px' }} type="text"
                 value={filters.search}
                 onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
-                placeholder="Name, phone, destination..." />
+                placeholder="Name, phone, destination, S.No..." />
             </div>
           </div>
 
@@ -275,6 +288,18 @@ export default function CRMPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* DMC */}
+          <div>
+            <label style={labelStyle}>DMC</label>
+            <select style={inputStyle} value={filters.dmc}
+              onChange={(e) => setFilters(f => ({ ...f, dmc: e.target.value }))}>
+              <option value="">All DMCs</option>
+              {DMC_LIST.map(dmc => (
+                <option key={dmc} value={dmc}>{dmc}</option>
+              ))}
+            </select>
           </div>
 
           {/* Source */}
@@ -332,7 +357,7 @@ export default function CRMPage() {
             </div>
           </div>
 
-          {/* Follow-up today toggle */}
+          {/* Follow-up today */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', backgroundColor: '#fafaf9', borderRadius: '8px', border: '1px solid #e7e5e4' }}>
             <div>
               <p style={{ fontSize: '13px', fontWeight: 500, color: '#1c1917' }}>Follow-up Today Only</p>
@@ -346,7 +371,6 @@ export default function CRMPage() {
           </div>
         </div>
 
-        {/* Filter panel footer */}
         <div style={{ padding: '16px 20px', borderTop: '1px solid #f5f5f4', display: 'flex', gap: '10px' }}>
           <button onClick={resetFilters}
             style={{ flex: 1, padding: '10px', backgroundColor: '#fff', border: '1px solid #d6d3d1', borderRadius: '8px', fontSize: '14px', color: '#44403c', cursor: 'pointer', fontWeight: 500 }}>
@@ -372,19 +396,13 @@ export default function CRMPage() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            {isAdmin && (
-              <Link href="/crm/dashboard"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', backgroundColor: '#fff', border: '1px solid #e7e5e4', borderRadius: '8px', fontSize: '14px', color: '#44403c', textDecoration: 'none', fontWeight: 500 }}>
-                📊 Dashboard
-              </Link>
-            )}
             <button
               onClick={() => setFilterOpen(true)}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', backgroundColor: activeFilterCount > 0 ? '#1c1917' : '#fff', border: `1px solid ${activeFilterCount > 0 ? '#1c1917' : '#e7e5e4'}`, borderRadius: '8px', fontSize: '14px', color: activeFilterCount > 0 ? '#fff' : '#44403c', cursor: 'pointer', fontWeight: 500 }}>
               <Filter size={15} />
               Filters
               {activeFilterCount > 0 && (
-                <span style={{ backgroundColor: '#fff', color: '#1c1917', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, padding: '0 6px', minWidth: '18px', textAlign: 'center' }}>
+                <span style={{ backgroundColor: '#fff', color: '#1c1917', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, padding: '0 6px' }}>
                   {activeFilterCount}
                 </span>
               )}
@@ -428,16 +446,16 @@ export default function CRMPage() {
                 <button onClick={() => setFilters(f => ({ ...f, temperature: '' }))} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={11} /></button>
               </span>
             )}
+            {filters.dmc && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', backgroundColor: '#f5f5f4', color: '#44403c', padding: '3px 10px', borderRadius: '9999px' }}>
+                {filters.dmc}
+                <button onClick={() => setFilters(f => ({ ...f, dmc: '' }))} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={11} /></button>
+              </span>
+            )}
             {filters.source && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', backgroundColor: '#f5f5f4', color: '#44403c', padding: '3px 10px', borderRadius: '9999px' }}>
                 {sourceLabels[filters.source]}
                 <button onClick={() => setFilters(f => ({ ...f, source: '' }))} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={11} /></button>
-              </span>
-            )}
-            {filters.budget && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', backgroundColor: '#f5f5f4', color: '#44403c', padding: '3px 10px', borderRadius: '9999px' }}>
-                {budgetLabels[filters.budget]}
-                <button onClick={() => setFilters(f => ({ ...f, budget: '' }))} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={11} /></button>
               </span>
             )}
             {filters.follow_up_today && (
@@ -446,14 +464,8 @@ export default function CRMPage() {
                 <button onClick={() => setFilters(f => ({ ...f, follow_up_today: false }))} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={11} /></button>
               </span>
             )}
-            {filters.search && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', backgroundColor: '#f5f5f4', color: '#44403c', padding: '3px 10px', borderRadius: '9999px' }}>
-                "{filters.search}"
-                <button onClick={() => setFilters(f => ({ ...f, search: '' }))} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={11} /></button>
-              </span>
-            )}
             <button onClick={resetFilters}
-              style={{ fontSize: '12px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px' }}>
+              style={{ fontSize: '12px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}>
               Clear all
             </button>
           </div>
@@ -465,14 +477,13 @@ export default function CRMPage() {
             <p style={{ color: '#78716c', fontSize: '14px', marginBottom: '16px' }}>
               {leads.length === 0 ? 'No leads yet. Log your first lead.' : 'No leads match your filters.'}
             </p>
-            {leads.length === 0 && (
+            {leads.length === 0 ? (
               <Link href="/crm/new"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#1c1917', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none' }}>
                 <Plus size={16} />
                 New Lead
               </Link>
-            )}
-            {leads.length > 0 && (
+            ) : (
               <button onClick={resetFilters}
                 style={{ backgroundColor: '#fff', border: '1px solid #d6d3d1', color: '#44403c', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}>
                 Clear Filters
@@ -481,50 +492,91 @@ export default function CRMPage() {
           </div>
         )}
 
-        {/* Leads list */}
-        {filteredLeads.length > 0 && (
+        {/* STAFF VIEW */}
+        {!isAdmin && filteredLeads.length > 0 && (
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e7e5e4', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr', gap: '12px', padding: '10px 20px', backgroundColor: '#fafaf9', borderBottom: '1px solid #f5f5f4' }}>
-              {['Client', 'Destination', 'Budget', 'Source', 'Temperature', 'Status'].map(h => (
-                <p key={h} style={{ fontSize: '11px', fontWeight: 600, color: '#a8a29e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '60px 90px 1.5fr 120px 100px 1fr 100px 100px', gap: '10px', padding: '10px 16px', backgroundColor: '#fafaf9', borderBottom: '1px solid #f5f5f4' }}>
+              {staffColumns.map(h => (
+                <p key={h} style={{ fontSize: '11px', fontWeight: 600, color: '#a8a29e', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</p>
               ))}
             </div>
 
             {filteredLeads.map((lead, i) => {
               const tempStyle = temperatureColors[lead.temperature] ?? temperatureColors.cold
               const statusStyle = statusColors[lead.status] ?? statusColors.new
-              const isOverdue = lead.follow_up_date &&
-                lead.follow_up_date < today &&
-                lead.status !== 'booked' &&
-                lead.status !== 'lost'
+              const isOverdue = lead.follow_up_date && lead.follow_up_date < today && lead.status !== 'booked' && lead.status !== 'lost'
 
               return (
                 <Link key={lead.id} href={`/crm/${lead.id}`}
-                  style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr', gap: '12px', padding: '14px 20px', borderTop: i === 0 ? 'none' : '1px solid #f5f5f4', textDecoration: 'none', backgroundColor: isOverdue ? '#fffbeb' : '#fff', alignItems: 'center' }}>
+                  style={{ display: 'grid', gridTemplateColumns: '60px 90px 1.5fr 120px 100px 1fr 100px 100px', gap: '10px', padding: '12px 16px', borderTop: i === 0 ? 'none' : '1px solid #f5f5f4', textDecoration: 'none', backgroundColor: isOverdue ? '#fffbeb' : '#fff', alignItems: 'center' }}>
+
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#0D9488' }}>
+                    #{lead.serial_number ?? '—'}
+                  </p>
+
+                  <p style={{ fontSize: '12px', color: '#78716c' }}>
+                    {new Date(lead.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                  </p>
 
                   <div>
-                    <p style={{ fontSize: '14px', fontWeight: 500, color: '#1c1917' }}>{lead.client_name}</p>
-                    <p style={{ fontSize: '12px', color: '#78716c', marginTop: '2px' }}>
-                      {lead.phone}
-                      {isAdmin && (lead.profiles as any)?.full_name && (
-                        <span style={{ marginLeft: '8px', color: '#a8a29e' }}>· {(lead.profiles as any).full_name}</span>
-                      )}
-                    </p>
-                    {isOverdue && (
-                      <p style={{ fontSize: '11px', color: '#92400e', fontWeight: 600, marginTop: '2px' }}>⚠ Follow-up overdue</p>
-                    )}
-                    {lead.follow_up_date === today && !isOverdue && (
-                      <p style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 600, marginTop: '2px' }}>📅 Follow-up today</p>
-                    )}
+                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#1c1917' }}>{lead.client_name}</p>
+                    {isOverdue && <p style={{ fontSize: '11px', color: '#92400e', fontWeight: 600 }}>⚠ Overdue</p>}
+                    {lead.follow_up_date === today && !isOverdue && <p style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 600 }}>📅 Today</p>}
                   </div>
 
-                  <p style={{ fontSize: '13px', color: '#44403c' }}>{lead.destination || '—'}</p>
-                  <p style={{ fontSize: '13px', color: '#44403c' }}>{budgetLabels[lead.budget] || '—'}</p>
-                  <p style={{ fontSize: '13px', color: '#44403c' }}>{sourceLabels[lead.source] || lead.source}</p>
+                  <p style={{ fontSize: '12px', color: '#44403c' }}>{lead.phone}</p>
 
-                  <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '9999px', backgroundColor: tempStyle.bg, color: tempStyle.text, textTransform: 'capitalize', width: 'fit-content' }}>
+                  <p style={{ fontSize: '12px', color: '#44403c' }}>{lead.dmc || '—'}</p>
+
+                  <p style={{ fontSize: '12px', color: '#44403c' }}>{lead.destination || '—'}</p>
+
+                  <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '9999px', backgroundColor: tempStyle.bg, color: tempStyle.text, textTransform: 'capitalize', width: 'fit-content' }}>
                     {lead.temperature}
                   </span>
+
+                  <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '9999px', backgroundColor: statusStyle.bg, color: statusStyle.text, textTransform: 'capitalize', width: 'fit-content' }}>
+                    {lead.status.replace('_', ' ')}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ADMIN VIEW */}
+        {isAdmin && filteredLeads.length > 0 && (
+          <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e7e5e4', overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 100px 1.5fr 80px 120px', gap: '12px', padding: '10px 20px', backgroundColor: '#fafaf9', borderBottom: '1px solid #f5f5f4' }}>
+              {adminColumns.map(h => (
+                <p key={h} style={{ fontSize: '11px', fontWeight: 600, color: '#a8a29e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</p>
+              ))}
+            </div>
+
+            {filteredLeads.map((lead, i) => {
+              const statusStyle = statusColors[lead.status] ?? statusColors.new
+
+              return (
+                <Link key={lead.id} href={`/crm/${lead.id}`}
+                  style={{ display: 'grid', gridTemplateColumns: '1.5fr 100px 1.5fr 80px 120px', gap: '12px', padding: '14px 20px', borderTop: i === 0 ? 'none' : '1px solid #f5f5f4', textDecoration: 'none', backgroundColor: '#fff', alignItems: 'center' }}>
+
+                  <div>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#1c1917' }}>
+                      {(lead.profiles as any)?.full_name || 'Unassigned'}
+                    </p>
+                  </div>
+
+                  <p style={{ fontSize: '12px', color: '#78716c' }}>
+                    {new Date(lead.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                  </p>
+
+                  <div>
+                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#1c1917' }}>{lead.client_name}</p>
+                    <p style={{ fontSize: '12px', color: '#78716c' }}>{lead.phone}</p>
+                  </div>
+
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#0D9488' }}>
+                    {lead.phone ?? '—'}
+                  </p>
 
                   <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '9999px', backgroundColor: statusStyle.bg, color: statusStyle.text, textTransform: 'capitalize', width: 'fit-content' }}>
                     {lead.status.replace('_', ' ')}

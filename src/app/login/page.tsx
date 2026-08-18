@@ -27,7 +27,7 @@ export default function LoginPage() {
     return
   }
 
-  router.replace('/dashboard')
+  router.replace('/crm')
 }
 
   return (
@@ -39,7 +39,7 @@ export default function LoginPage() {
             Tentwood Trips
           </h1>
           <p className="text-stone-500 text-sm mt-1">
-            Internal Management Platform
+            Customer Relationship Management Platform
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@tentwood.com"
+              placeholder="you@tentwoodtrips.com"
               className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 text-stone-900 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
             />
           </div>

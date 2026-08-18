@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Tentwood Trips — IMP',
-  description: 'Itinerary Management Platform',
+  title: 'Tentwood Trips — CRM',
+  description: 'Customer Relationship Management Platform for Tentwood Trips',
 }
 
 export default function RootLayout({

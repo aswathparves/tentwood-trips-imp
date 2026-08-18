@@ -178,6 +178,7 @@ export default function LeadDetailPage() {
 
   async function handleDelete() {
     if (!isAdmin) return
+    if (!id) return
     if (!window.confirm(`Delete lead for "${form.client_name}"? This cannot be undone.`)) return
 
     await supabase.from('leads').delete().eq('id', id)

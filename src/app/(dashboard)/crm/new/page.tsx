@@ -26,6 +26,13 @@ const labelStyle = {
   marginBottom: '6px',
 }
 
+const DMC_LIST = [
+  'Baligo', 'Travclan', 'Tatabye', 'IDMC', 'ACT',
+  'Travino', 'Great Deal', 'Indo China', 'Tourale',
+  'TBO', 'JE', 'Lotus', 'Alburaq', 'Andaman Experts',
+  'Others',
+]
+
 export default function NewLeadPage() {
   const supabase = createClient()
   const router = useRouter()
@@ -34,13 +41,15 @@ export default function NewLeadPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [staffList, setStaffList] = useState<any[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
-  const [destinations, setDestinations] = useState<any[]>([])
 
   const [form, setForm] = useState({
     client_name: '',
     phone: '',
     email: '',
+    region: '',
     source: 'phone_call',
+    dmc: '',
+    dmc_custom: '',
     destination: '',
     travel_date_from: '',
     travel_date_to: '',
@@ -69,7 +78,6 @@ export default function NewLeadPage() {
       setIsAdmin(profile?.role === 'admin')
       setForm(f => ({ ...f, assigned_to: user.id }))
 
-      // Load staff list for admin
       if (profile?.role === 'admin') {
         const { data: staff } = await supabase
           .from('profiles')
@@ -77,14 +85,6 @@ export default function NewLeadPage() {
           .order('full_name')
         setStaffList(staff ?? [])
       }
-
-      // Load destinations
-      const { data: dests } = await supabase
-        .from('destinations')
-        .select('id, name, country')
-        .is('archived_at', null)
-        .order('name')
-      setDestinations(dests ?? [])
     }
     load()
   }, [])
@@ -108,11 +108,15 @@ export default function NewLeadPage() {
 
     const { data: { user } } = await supabase.auth.getUser()
 
+    const finalDmc = form.dmc === 'Others' ? form.dmc_custom.trim() || 'Others' : form.dmc
+
     const { error } = await supabase.from('leads').insert({
       client_name: form.client_name.trim(),
       phone: form.phone.trim(),
       email: form.email.trim() || null,
+      region: form.region.trim() || null,
       source: form.source,
+      dmc: finalDmc || null,
       destination: form.destination.trim() || null,
       travel_date_from: form.travel_date_from || null,
       travel_date_to: form.travel_date_to || null,
@@ -187,6 +191,12 @@ export default function NewLeadPage() {
                 placeholder="rajesh@email.com" />
             </div>
             <div>
+              <label style={labelStyle}>Region <span style={{ color: '#a8a29e', fontWeight: 400 }}>(optional)</span></label>
+              <input style={inputStyle} type="text" value={form.region}
+              onChange={(e) => setForm(f => ({ ...f, region: e.target.value }))}
+              placeholder="e.g. North India, APAC, Europe" />
+            </div>
+            <div>
               <label style={labelStyle}>Lead Source</label>
               <select style={inputStyle} value={form.source}
                 onChange={(e) => setForm(f => ({ ...f, source: e.target.value }))}>
@@ -199,6 +209,26 @@ export default function NewLeadPage() {
                 <option value="other">📌 Other</option>
               </select>
             </div>
+          </div>
+
+          {/* DMC */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={labelStyle}>DMC</label>
+            <select style={inputStyle} value={form.dmc}
+              onChange={(e) => setForm(f => ({ ...f, dmc: e.target.value, dmc_custom: '' }))}>
+              <option value="">Select DMC...</option>
+              {DMC_LIST.map(dmc => (
+                <option key={dmc} value={dmc}>{dmc}</option>
+              ))}
+            </select>
+            {form.dmc === 'Others' && (
+              <input
+                style={{ ...inputStyle, marginTop: '8px' }}
+                type="text"
+                value={form.dmc_custom}
+                onChange={(e) => setForm(f => ({ ...f, dmc_custom: e.target.value }))}
+                placeholder="Enter DMC name..." />
+            )}
           </div>
 
           {/* Trip Details */}
@@ -274,14 +304,11 @@ export default function NewLeadPage() {
                     <button key={opt.value} type="button"
                       onClick={() => setForm(f => ({ ...f, temperature: opt.value }))}
                       style={{
-                        flex: 1,
-                        padding: '8px',
-                        borderRadius: '8px',
+                        flex: 1, padding: '8px', borderRadius: '8px',
                         border: `2px solid ${form.temperature === opt.value ? opt.active : '#e7e5e4'}`,
                         backgroundColor: form.temperature === opt.value ? opt.bg : '#fff',
                         color: form.temperature === opt.value ? opt.active : '#78716c',
-                        fontSize: '13px',
-                        fontWeight: form.temperature === opt.value ? 600 : 400,
+                        fontSize: '13px', fontWeight: form.temperature === opt.value ? 600 : 400,
                         cursor: 'pointer',
                       }}>
                       {opt.label}
@@ -332,7 +359,7 @@ export default function NewLeadPage() {
             <textarea style={{ ...inputStyle, resize: 'none' }} rows={3}
               value={form.notes}
               onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
-              placeholder="What did the client ask for? Any special requirements, preferences, or context from the call..." />
+              placeholder="What did the client ask for? Any special requirements..." />
           </div>
 
           {/* Actions */}
