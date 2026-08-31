@@ -100,7 +100,7 @@ export async function POST(request: Request) {
 
     const { data: invited, error: inviteError } =
       await admin.auth.admin.inviteUserByEmail(email, {
-        redirectTo: `${new URL(request.url).origin}/auth/callback`,
+        redirectTo: `${new URL(request.url).origin}/auth/confirm?next=/set-password`,
       })
 
     if (inviteError) {

@@ -244,23 +244,39 @@ export default function BookingDetailPage() {
   }
 
   async function togglePaymentPaid(paymentId: string, currentPaid: boolean) {
-    const today = new Date().toISOString().split('T')[0]
-    await supabase
-      .from('booking_payments')
-      .update({
-        is_paid: !currentPaid,
-        paid_date: !currentPaid ? today : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', paymentId)
+  const today = new Date().toISOString().split('T')[0]
+  await supabase
+    .from('booking_payments')
+    .update({
+      is_paid: !currentPaid,
+      paid_date: !currentPaid ? today : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', paymentId)
 
-    const { data } = await supabase
-      .from('booking_payments')
-      .select('*')
-      .eq('booking_id', id)
-      .order('due_date')
-    setPayments(data ?? [])
+  // Re-fetch payments
+  const { data: updatedPayments } = await supabase
+    .from('booking_payments')
+    .select('*')
+    .eq('booking_id', id)
+    .order('due_date')
+  setPayments(updatedPayments ?? [])
+
+  // Re-fetch booking to get updated paid_amount from trigger
+  const { data: updatedBooking } = await supabase
+    .from('bookings')
+    .select('paid_amount, total_amount')
+    .eq('id', id)
+    .single()
+
+  if (updatedBooking) {
+    setForm(f => ({
+      ...f,
+      paid_amount: updatedBooking.paid_amount,
+      total_amount: updatedBooking.total_amount,
+    }))
   }
+}
 
   async function deletePassenger(passengerId: string) {
     if (!window.confirm('Remove this passenger?')) return
