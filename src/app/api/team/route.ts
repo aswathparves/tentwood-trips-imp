@@ -51,7 +51,6 @@ export async function GET() {
   }
 
   const userIds = profiles?.map((profile) => profile.id) ?? []
-
   const emailMap: Record<string, string> = {}
 
   for (const userId of userIds) {
@@ -146,4 +145,119 @@ export async function POST(request: Request) {
       { status: 400 }
     )
   }
+}
+
+export async function DELETE(request: Request) {
+  const auth = await requireAdmin()
+
+  if ('error' in auth) {
+    return NextResponse.json(
+      { error: auth.error },
+      { status: auth.status }
+    )
+  }
+
+  const targetId = new URL(request.url).searchParams.get('id')
+
+  if (!targetId) {
+    return NextResponse.json(
+      { error: 'User id is required.' },
+      { status: 400 }
+    )
+  }
+
+  if (targetId === auth.user.id) {
+    return NextResponse.json(
+      { error: 'You cannot delete your own account.' },
+      { status: 400 }
+    )
+  }
+
+  const admin = createAdminClient()
+
+  const { data: targetProfile, error: profileLookupError } = await admin
+    .from('profiles')
+    .select('id, full_name, role')
+    .eq('id', targetId)
+    .single()
+
+  if (profileLookupError || !targetProfile) {
+    return NextResponse.json(
+      { error: 'Team member not found.' },
+      { status: 404 }
+    )
+  }
+
+  if (targetProfile.role === 'admin') {
+    const { count, error: adminCountError } = await admin
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'admin')
+      .eq('is_active', true)
+
+    if (adminCountError) {
+      return NextResponse.json(
+        { error: adminCountError.message },
+        { status: 500 }
+      )
+    }
+
+    if ((count ?? 0) <= 1) {
+      return NextResponse.json(
+        { error: 'You cannot delete the last active admin.' },
+        { status: 400 }
+      )
+    }
+  }
+
+  // Keep existing CRM history intact by removing references before deleting
+  // the profile. These columns are nullable by design.
+  const referenceTables = [
+    { table: 'leads', columns: ['assigned_to', 'created_by'] },
+    { table: 'bookings', columns: ['assigned_to', 'created_by'] },
+  ] as const
+
+  for (const { table, columns } of referenceTables) {
+    for (const column of columns) {
+      const { error } = await admin
+        .from(table)
+        .update({ [column]: null })
+        .eq(column, targetId)
+
+      if (error) {
+        return NextResponse.json(
+          { error: `Could not remove ${targetProfile.full_name}'s references from ${table}.` },
+          { status: 500 }
+        )
+      }
+    }
+  }
+
+  const { error: authDeleteError } = await admin.auth.admin.deleteUser(targetId)
+
+  if (authDeleteError) {
+    return NextResponse.json(
+      { error: authDeleteError.message },
+      { status: 500 }
+    )
+  }
+
+  // Normally the profile is removed by the auth-user relationship/trigger.
+  // This also handles projects where that cleanup is not configured.
+  const { error: profileDeleteError } = await admin
+    .from('profiles')
+    .delete()
+    .eq('id', targetId)
+
+  if (profileDeleteError) {
+    return NextResponse.json(
+      { error: profileDeleteError.message },
+      { status: 500 }
+    )
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: `${targetProfile.full_name || 'Team member'} was deleted successfully.`,
+  })
 }
