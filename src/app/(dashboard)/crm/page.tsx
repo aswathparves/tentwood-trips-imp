@@ -4,7 +4,8 @@ import TopNav from '@/components/layout/TopNav'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { Plus, Filter, X, Search } from 'lucide-react'
+import { Plus, Filter, X, Search, Download } from 'lucide-react'
+import LeadImport from '@/components/leads/LeadImport'
 
 const temperatureColors: Record<string, { bg: string; text: string }> = {
   cold: { bg: '#dbeafe', text: '#1d4ed8' },
@@ -163,6 +164,80 @@ export default function CRMPage() {
 
   function resetFilters() {
     setFilters(defaultFilters)
+  }
+
+  // C5 — Export filtered leads as CSV
+  function exportCSV() {
+    const headers = [
+      'S.No',
+      'Created Date',
+      'Client Name',
+      'Phone',
+      'Email',
+      'Source',
+      'Destination',
+      'Travel From',
+      'Travel To',
+      'Adults',
+      'Children',
+      'Budget',
+      'Temperature',
+      'Status',
+      'Follow-up Date',
+      'DMC',
+      'Notes',
+    ]
+
+    const escapeCSV = (value: unknown) => {
+      const text = String(value ?? '')
+      return `"${text.replace(/"/g, '""')}"`
+    }
+
+    const rows = filteredLeads.map((lead, index) => [
+      lead.serial_number ?? index + 1,
+      lead.created_at
+        ? new Date(lead.created_at).toISOString().split('T')[0]
+        : '',
+      lead.client_name,
+      lead.phone,
+      lead.email,
+      lead.source,
+      lead.destination,
+      lead.travel_date_from,
+      lead.travel_date_to,
+      lead.adults,
+      lead.children,
+      lead.budget,
+      lead.temperature,
+      lead.status,
+      lead.follow_up_date,
+      lead.dmc,
+      lead.notes,
+    ])
+
+    const csv = [
+      headers.map(escapeCSV).join(','),
+      ...rows.map(row => row.map(escapeCSV).join(',')),
+    ].join('\n')
+
+    const blob = new Blob(
+      ['\uFEFF' + csv],
+      { type: 'text/csv;charset=utf-8;' }
+    )
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = `tentwood-leads-${new Date()
+      .toISOString()
+      .split('T')[0]}.csv`
+
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+
+    URL.revokeObjectURL(url)
   }
 
   const today = new Date().toISOString().split('T')[0]
@@ -395,24 +470,73 @@ export default function CRMPage() {
               {filteredLeads.length} of {leads.length} leads
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <LeadImport onImported={() => window.location.reload()} />
+
+             <button
+              type="button"
+              onClick={exportCSV}
+              disabled={filteredLeads.length === 0}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                backgroundColor: filteredLeads.length > 0 ? '#fff' : '#fafaf9',
+                border: '1px solid #e7e5e4',
+                borderRadius: '8px',
+                fontSize: '14px',
+                color: filteredLeads.length > 0 ? '#44403c' : '#a8a29e',
+                cursor: filteredLeads.length > 0 ? 'pointer' : 'not-allowed',
+                fontWeight: 500,
+              }}>
+              <Download size={15} />
+              Export CSV
+            </button>
+
             <button
               onClick={() => setFilterOpen(true)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', backgroundColor: activeFilterCount > 0 ? '#1c1917' : '#fff', border: `1px solid ${activeFilterCount > 0 ? '#1c1917' : '#e7e5e4'}`, borderRadius: '8px', fontSize: '14px', color: activeFilterCount > 0 ? '#fff' : '#44403c', cursor: 'pointer', fontWeight: 500 }}>
-              <Filter size={15} />
-              Filters
-              {activeFilterCount > 0 && (
-                <span style={{ backgroundColor: '#fff', color: '#1c1917', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, padding: '0 6px' }}>
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-            <Link href="/crm/new"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#0D9488', color: '#fff', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none' }}>
-              <Plus size={16} />
-              New Lead
-            </Link>
-          </div>
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                backgroundColor: activeFilterCount > 0 ? '#1c1917' : '#fff',
+                border: `1px solid ${activeFilterCount > 0 ? '#1c1917' : '#e7e5e4'}`,
+                borderRadius: '8px',
+                fontSize: '14px',
+                color: activeFilterCount > 0 ? '#fff' : '#44403c',
+                cursor: 'pointer',
+                fontWeight: 500,
+              }}>
+            <Filter size={15} />
+            Filters
+            {activeFilterCount > 0 && (
+              <span style={{ backgroundColor: '#fff', color: '#1c1917', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, padding: '0 6px' }}>
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          <Link
+            href="/crm/new"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: '#0D9488',
+              color: '#fff',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              textDecoration: 'none',
+            }}>
+            <Plus size={16} />
+            New Lead
+          </Link>
+        </div>
         </div>
 
         {/* Summary Cards */}
