@@ -6,10 +6,20 @@
   padding: 0;
 }
 
+html {
+  min-height: 100%;
+}
+
 body {
   font-family: system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  background: #fafaf9;
+  min-height: 100%;
 }
+
+/* =========================================================
+   DESKTOP LAYOUT
+   ========================================================= */
 
 .sidebar {
   position: fixed;
@@ -48,4 +58,255 @@ body {
   width: 100%;
   max-width: 768px;
   margin: 0 auto;
+}
+
+/* =========================================================
+   MOBILE LAYOUT
+   CHANGE: Responsive shell for phones/tablets.
+   Desktop layout above remains unchanged.
+   ========================================================= */
+
+@media (max-width: 767px) {
+  .sidebar {
+    display: none;
+  }
+
+  .topnav {
+    left: 0;
+    height: 56px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding-top: 56px;
+    padding-bottom: 72px;
+  }
+
+  .page-container {
+    padding: 16px;
+    max-width: none;
+  }
+
+  .page-container-sm {
+    padding: 16px;
+    max-width: none;
+  }
+}
+
+/* =========================================================
+   MOBILE BOTTOM NAVIGATION
+   CHANGE: Primary navigation for phone users.
+   ========================================================= */
+
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-nav {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 64px;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: #ffffff;
+    border-top: 1px solid #e7e5e4;
+    z-index: 50;
+  }
+
+  .mobile-nav-inner {
+    height: 64px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    align-items: stretch;
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: #78716c;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item-active {
+    color: #1c1917;
+  }
+
+  .mobile-nav-item:active {
+    background: #f5f5f4;
+  }
+}
+
+/* =========================================================
+   CRM DASHBOARD — RESPONSIVE
+   ========================================================= */
+
+.dashboard-page {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+}
+
+.dashboard-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dashboard-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dashboard-analytics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dashboard-followups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dashboard-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.dashboard-filter-summary {
+  margin-left: auto;
+}
+
+.dashboard-team-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+
+@media (max-width: 900px) {
+  .dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-analytics {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-followups {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-container {
+    padding: 20px 14px 40px;
+  }
+
+  .dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .dashboard-hero {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .dashboard-analytics {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .dashboard-followups {
+    gap: 10px;
+  }
+
+  .dashboard-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .dashboard-filter-summary {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    padding-left: 2px;
+  }
+
+  .dashboard-filter-select {
+    width: 100%;
+  }
+
+  .dashboard-filter-select select {
+    width: 100%;
+  }
+
+  .dashboard-page h1 {
+    font-size: 24px !important;
+  }
+
+  .dashboard-revenue {
+    padding: 22px 18px !important;
+  }
+
+  .dashboard-revenue-value {
+    font-size: 34px !important;
+  }
+
+  .dashboard-revenue-stats {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .dashboard-card {
+    padding: 16px !important;
+  }
+
+  .dashboard-card-title {
+    font-size: 12px !important;
+  }
+
+  .dashboard-team-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dashboard-team-table {
+    min-width: 560px;
+  }
 }
