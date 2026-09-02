@@ -59,7 +59,7 @@ type DashboardData = {
   profiles: Profile[]
 }
 
-type DateFilter = 'today' | '7days' | '30days' | 'month' | 'quarter' | 'all'
+type DateFilter = 'today' | '7days' | '30days' | 'month' | 'custom' | 'all'
 
 /* ─── Constants ──────────────────────────────────────────── */
 
@@ -111,11 +111,16 @@ function today0() {
   return d
 }
 
-function withinRange(iso: string, filter: DateFilter) {
-  if (filter === 'all') return true
-
+function withinRange(
+  iso: string,
+  filter: DateFilter,
+  from = '',
+  to = ''
+) {
   const d = new Date(iso)
   const start = today0()
+
+  if (filter === 'all') return true
 
   if (filter === 'today') {
     const end = new Date(start)
@@ -138,17 +143,16 @@ function withinRange(iso: string, filter: DateFilter) {
     return d >= start
   }
 
-  if (filter === 'quarter') {
-    const m = start.getMonth()
-    start.setMonth(Math.floor(m / 3) * 3, 1)
-    return d >= start
+  if (filter === 'custom') {
+    const date = iso.slice(0, 10)
+    return (!from || date >= from) && (!to || date <= to)
   }
 
   return true
 }
 
 function periodLabel(f: DateFilter) {
-  return { today: 'Today', '7days': 'Last 7 days', '30days': 'Last 30 days', month: 'This month', quarter: 'This quarter', all: 'All time' }[f]
+  return { today: 'Today', '7days': 'Last 7 days', '30days': 'Last 30 days', month: 'This month', custom: 'Custom', all: 'All time' }[f]
 }
 
 function fmtDate(s: string | null) {
@@ -164,6 +168,8 @@ function initials(name: string) {
 
 export default function DashboardClient({ data }: { data: DashboardData }) {
   const [dateFilter, setDateFilter] = useState<DateFilter>('30days')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
   const [staffFilter, setStaffFilter] = useState('all')
   const [destinationFilter, setDestinationFilter] = useState('all')
 
@@ -175,18 +181,18 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
   , [data])
 
   const leads = useMemo(() => data.leads.filter(l => {
-    if (!withinRange(l.created_at, dateFilter)) return false
+    if (!withinRange(l.created_at, dateFilter, customFrom, customTo)) return false
     if (staffFilter !== 'all' && l.assigned_to !== staffFilter) return false
     if (destinationFilter !== 'all' && l.destination !== destinationFilter) return false
     return true
-  }), [data.leads, dateFilter, staffFilter, destinationFilter])
+  }), [data.leads, dateFilter, staffFilter, destinationFilter, customFrom, customTo])
 
   const bookings = useMemo(() => data.bookings.filter(b => {
-    if (!withinRange(b.created_at, dateFilter)) return false
+    if (!withinRange(b.created_at, dateFilter, customFrom, customTo)) return false
     if (staffFilter !== 'all' && b.assigned_to !== staffFilter) return false
     if (destinationFilter !== 'all' && b.destination !== destinationFilter) return false
     return normalize(b.status) !== 'cancelled'
-  }), [data.bookings, dateFilter, staffFilter, destinationFilter])
+  }), [data.bookings, dateFilter, staffFilter, destinationFilter, customFrom, customTo])
 
   /* KPIs */
   const totalValue     = bookings.reduce((s, b) => s + Number(b.total_amount  || 0), 0)
@@ -315,9 +321,39 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             <option value="7days">Last 7 days</option>
             <option value="30days">Last 30 days</option>
             <option value="month">This month</option>
-            <option value="quarter">This quarter</option>
+            <option value="custom">Custom</option>
             <option value="all">All time</option>
           </FilterSelect>
+          {dateFilter === 'custom' && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="date"
+                value={customFrom}
+                onChange={e => setCustomFrom(e.target.value)}
+                style={{
+                  height: 38,
+                  padding: '0 10px',
+                  border: '1px solid #d6d3d1',
+                  borderRadius: 8,
+                  background: '#fff',
+                  fontSize: 13,
+                }}
+              />
+              <input
+                type="date"
+                value={customTo}
+                onChange={e => setCustomTo(e.target.value)}
+                style={{
+                  height: 38,
+                  padding: '0 10px',
+                  border: '1px solid #d6d3d1',
+                  borderRadius: 8,
+                  background: '#fff',
+                  fontSize: 13,
+                }}
+              />
+            </div>
+          )}
           <FilterSelect value={staffFilter} onChange={setStaffFilter}>
             <option value="all">All staff</option>
             {data.profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}

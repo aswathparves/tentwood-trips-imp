@@ -1,10 +1,10 @@
 'use client'
 
 import TopNav from '@/components/layout/TopNav'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { Plus, Filter, X, Search, Download } from 'lucide-react'
+import { Plus, Filter, X, Search, Download, ChevronUp, ChevronDown } from 'lucide-react'
 import LeadImport from '@/components/leads/LeadImport'
 
 const temperatureColors: Record<string, { bg: string; text: string }> = {
@@ -84,6 +84,40 @@ export default function CRMPage() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState<Filters>(defaultFilters)
   const [profile, setProfile] = useState<any>(null)
+
+  type SortKey = 'serial_number' | 'created_at' | 'client_name' | 'phone' | 'dmc' | 'destination' | 'temperature' | 'status'
+
+  const [sort, setSort] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({
+    key: 'created_at',
+    direction: 'desc',
+  })
+
+  function toggleSort(key: SortKey) {
+    setSort(s => ({
+      key,
+      direction: s.key === key && s.direction === 'asc' ? 'desc' : 'asc',
+    }))
+  }
+
+  const sortedLeads = useMemo(() => {
+    if (isAdmin) return filteredLeads
+
+    return [...filteredLeads].sort((a, b) => {
+      const av = a[sort.key]
+      const bv = b[sort.key]
+
+      if (sort.key === 'serial_number') {
+        return (Number(av) - Number(bv)) * (sort.direction === 'asc' ? 1 : -1)
+      }
+
+      const result = String(av ?? '').localeCompare(String(bv ?? ''), undefined, {
+        numeric: true,
+        sensitivity: 'base',
+      })
+
+      return result * (sort.direction === 'asc' ? 1 : -1)
+    })
+  }, [filteredLeads, isAdmin, sort])
 
   const activeFilterCount = Object.entries(filters).filter(([key, val]) => {
     if (key === 'follow_up_today') return val === true
@@ -620,12 +654,51 @@ export default function CRMPage() {
         {!isAdmin && filteredLeads.length > 0 && (
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e7e5e4', overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '50px 85px 1.2fr 110px 80px 1.5fr 110px 100px', gap: '10px', padding: '10px 16px', backgroundColor: '#fafaf9', borderBottom: '1px solid #f5f5f4' }}>
-              {staffColumns.map(h => (
-                <p key={h} style={{ fontSize: '11px', fontWeight: 600, color: '#a8a29e', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</p>
-              ))}
+              {staffColumns.map(h => {
+                const keys: Record<string, SortKey> = {
+                  'S.No': 'serial_number',
+                  Date: 'created_at',
+                  Name: 'client_name',
+                  Phone: 'phone',
+                  DMC: 'dmc',
+                  Destination: 'destination',
+                  Temperature: 'temperature',
+                  Status: 'status',
+                }
+
+                const key = keys[h]
+                const active = sort.key === key
+
+                return (
+                  <button
+                    key={h}
+                    onClick={() => toggleSort(key)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      border: 0,
+                      background: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      color: active ? '#44403c' : '#a8a29e',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}>
+                    {h}
+                    {active && (
+                      sort.direction === 'asc'
+                        ? <ChevronUp size={13} />
+                        : <ChevronDown size={13} />
+                    )}
+                  </button>
+                )
+              })}
             </div>
 
-            {filteredLeads.map((lead, i) => {
+            {sortedLeads.map((lead, i) => {
               const tempStyle = temperatureColors[lead.temperature] ?? temperatureColors.cold
               const statusStyle = statusColors[lead.status] ?? statusColors.new
               const isOverdue = lead.follow_up_date && lead.follow_up_date < today && lead.status !== 'booked' && lead.status !== 'lost'
