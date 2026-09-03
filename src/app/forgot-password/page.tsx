@@ -10,9 +10,8 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setError('')
     setMessage('')
     setLoading(true)
@@ -36,37 +35,249 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white border border-stone-200 rounded-2xl p-8 shadow-sm">
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-stone-900">
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        background: '#f8f7f3',
+        fontFamily:
+          'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      }}
+    >
+      {/* LEFT */}
+      <section
+        style={{
+          position: 'relative',
+          width: '46%',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          overflow: 'hidden',
+          padding: '54px clamp(32px, 5vw, 72px)',
+          background: '#4bb9b0',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(circle at 50% 25%, rgba(255,255,255,0.13), transparent 42%)',
+          }}
+        />
+
+        <div
+          style={{
+            position: 'absolute',
+            width: 390,
+            height: 390,
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '50%',
+            top: -210,
+            left: -190,
+          }}
+        />
+
+        <div
+          style={{
+            position: 'absolute',
+            width: 560,
+            height: 560,
+            border: '1px solid rgba(255,255,255,0.10)',
+            borderRadius: '50%',
+            right: -270,
+            bottom: -250,
+          }}
+        />
+
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <img
+            src="/tentwood-logo.png"
+            alt="Tentwood Trips"
+            style={{
+              display: 'block',
+              width: '100%',
+              maxWidth: 330,
+              height: 'auto',
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            maxWidth: 540,
+            marginTop: 'auto',
+            paddingTop: 80,
+          }}
+        >
+          <p
+            style={{
+              margin: '0 0 16px',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'rgba(13,43,66,0.58)',
+            }}
+          >
+            Travel Operations · Client Management
+          </p>
+
+          <h1
+            style={{
+              margin: 0,
+              maxWidth: 500,
+              fontSize: 'clamp(2rem, 3vw, 3rem)',
+              fontWeight: 600,
+              lineHeight: 1.08,
+              letterSpacing: '-0.035em',
+              color: '#0d2b42',
+            }}
+          >
+            Everything your travel team needs, in one place.
+          </h1>
+
+          <p
+            style={{
+              margin: '22px 0 0',
+              maxWidth: 440,
+              fontSize: 14,
+              lineHeight: 1.75,
+              color: 'rgba(15,40,58,0.62)',
+            }}
+          >
+            Manage leads, bookings, follow-ups and your team from a single
+            workspace.
+          </p>
+
+          <div
+            style={{
+              width: 48,
+              height: 1,
+              marginTop: 34,
+              background: 'rgba(13,43,66,0.22)',
+            }}
+          />
+
+          <p
+            style={{
+              margin: '14px 0 0',
+              fontSize: 11,
+              color: 'rgba(13,43,66,0.42)',
+            }}
+          >
+            Internal workspace · Tentwood Trips
+          </p>
+        </div>
+      </section>
+
+      {/* RIGHT */}
+      <section
+        style={{
+          flex: 1,
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '48px 56px',
+          background: '#f8f7f3',
+        }}
+      >
+        <div style={{ width: '100%', maxWidth: 430 }}>
+          <div style={{ marginBottom: 38 }}>
+            <p
+              style={{
+                margin: '0 0 9px',
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#159b91',
+              }}
+            >
+              Account recovery
+            </p>
+
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 'clamp(2rem, 3vw, 2.5rem)',
+                fontWeight: 600,
+                lineHeight: 1.1,
+                letterSpacing: '-0.035em',
+                color: '#17212b',
+              }}
+            >
               Forgot password?
-            </h1>
-            <p className="mt-2 text-sm text-stone-500">
-              Enter your email and we&apos;ll send you a password reset link.
+            </h2>
+
+            <p
+              style={{
+                margin: '11px 0 0',
+                fontSize: 14,
+                lineHeight: 1.6,
+                color: '#737d85',
+              }}
+            >
+              Enter your email and we'll send you a password reset link.
             </p>
           </div>
 
           {message && (
-            <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            <div
+              style={{
+                marginBottom: 24,
+                padding: '12px 14px',
+                border: '1px solid #bfe3df',
+                borderRadius: 9,
+                background: '#f0faf8',
+                color: '#147a73',
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
               {message}
             </div>
           )}
 
           {error && (
-            <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div
+              style={{
+                marginBottom: 24,
+                padding: '12px 14px',
+                border: '1px solid #f0caca',
+                borderRadius: 9,
+                background: '#fff6f6',
+                color: '#bd3838',
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
+          {!message && (
+            <form onSubmit={handleSubmit}>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-stone-700 mb-2"
+                style={{
+                  display: 'block',
+                  marginBottom: 8,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: '#303941',
+                }}
               >
-                Email
+                Email address
               </label>
 
               <input
@@ -75,31 +286,106 @@ export default function ForgotPasswordPage() {
                 required
                 autoComplete="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-stone-500 focus:ring-2 focus:ring-stone-200"
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@tentwoodtrips.com"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 50,
+                  padding: '0 15px',
+                  border: '1px solid #d9dfdc',
+                  borderRadius: 10,
+                  outline: 'none',
+                  background: '#fff',
+                  color: '#17212b',
+                  fontSize: 14,
+                  fontWeight: 400,
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#4bb9b0'
+                  e.currentTarget.style.boxShadow =
+                    '0 0 0 3px rgba(75,185,176,0.10)'
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#d9dfdc'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
               />
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-stone-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? 'Sending...' : 'Send reset link'}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  height: 50,
+                  marginTop: 30,
+                  border: 0,
+                  borderRadius: 10,
+                  background: '#12354f',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.75 : 1,
+                  boxShadow: '0 2px 5px rgba(18,53,79,0.14)',
+                }}
+              >
+                {loading ? 'Sending…' : 'Send reset link'}
+              </button>
+            </form>
+          )}
 
-          <div className="mt-6 text-center">
+          <div
+            style={{
+              marginTop: 30,
+              textAlign: 'center',
+            }}
+          >
             <Link
               href="/login"
-              className="text-sm text-stone-600 hover:text-stone-900"
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#159b91',
+                textDecoration: 'none',
+              }}
             >
               ← Back to login
             </Link>
           </div>
+
+          <p
+            style={{
+              margin: '30px 0 0',
+              textAlign: 'center',
+              fontSize: 11,
+              color: '#a5aeaa',
+            }}
+          >
+            Internal use only · Tentwood Trips
+          </p>
         </div>
-      </div>
+      </section>
+
+      <style>{`
+        @media (max-width: 767px) {
+          main {
+            display: block !important;
+          }
+
+          main > section:first-child {
+            width: 100% !important;
+            min-height: 360px !important;
+            padding: 42px 24px 46px !important;
+          }
+
+          main > section:last-child {
+            min-height: auto !important;
+            padding: 52px 24px 56px !important;
+          }
+        }
+      `}</style>
     </main>
   )
 }
